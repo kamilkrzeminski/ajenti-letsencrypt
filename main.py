@@ -18,15 +18,15 @@ from pprint import pprint
 class Settings (object):
    def __init__(self):
       self.basedir = platform_select(
-          debian='/etc/letsencrypt.sh/',
-          centos='/etc/letsencrypt.sh/',
-          mageia='/etc/letsencrypt.sh/',
-          freebsd='/usr/local/etc/letsencrypt.sh/',
-          arch='/etc/letsencrypt.sh/',
-          osx='/opt/local/etc/letsencrypt.sh/',
+          debian='/etc/dehydrated/',
+          centos='/etc/dehydrated/',
+          mageia='/etc/dehydrated/',
+          freebsd='/usr/local/etc/dehydrated/',
+          arch='/etc/dehydrated/',
+          osx='/opt/local/etc/dehydrated/',
       )
 
-      self.wellknown = '/var/www/letsencrypt.sh/'
+      self.wellknown = '/var/www/dehydrated/'
       self.domains = 'example.com sub.example.com'
       self.cronjob = False
       self.cronfile = 'letsencrypt'
@@ -138,8 +138,8 @@ class LetsEncryptPlugin (SectionPlugin):
         file.close()
 
     def create_wellknown(self):
-        if not self.check_nginx_custom_dir():
-            return False
+#        if not self.check_nginx_custom_dir():
+#            return False
 
         template = """
 server {
@@ -164,7 +164,7 @@ server {
 
     def create_cron(self):
         file = open(self.crontab_dir + '/' + self.settings.cronfile, 'w')
-        template = "0 0 1 * * " + self.pwd + 'libs/letsencrypt.sh/letsencrypt.sh -c'
+        template = "0 0 1 * * " + self.pwd + 'libs/dehydrated/dehydrated -c'
         if not file.write(template):
             self.context.notify('info', 'Cron job error')
         file.close()
@@ -187,11 +187,11 @@ server {
             if os.makedirs(self.nginx_config_dir):
                 return True
             else:
-                self.context.notify('error', 'NGINX custom dir write error')
+                self.context.notify('error', 'NGINX custom dir write error: '+self.nginx_config_dir)
                 return False
 
     def request_certificates(self):
-        params = [self.pwd + 'libs/letsencrypt.sh/letsencrypt.sh', '-c']
+        params = [self.pwd + 'libs/dehydrated/dehydrated', '-c']
         if self.find('renewal').value:
             params.append('--force')
 
@@ -205,7 +205,7 @@ server {
 
     def save(self):
         self.binder.update()
-    	self.binder.populate()
+     	self.binder.populate()
         self.create_folders()
         self.write_domain_file()
 
@@ -213,6 +213,7 @@ server {
             return
 
         self.create_custom_config()
+ 
         self.create_wellknown()
 
         if self.settings.cronjob:
