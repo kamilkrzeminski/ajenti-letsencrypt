@@ -92,10 +92,8 @@ class LetsEncryptPlugin (SectionPlugin):
             return
 
         file = open(filepath, 'w')
-        if file.write(self.find('domains').value) is None:
-            self.has_domains = True
-        else:
-            self.context.notify('error', 'Domain file write error')
+        file.write(self.find('domains').value)
+        self.has_domains = True
     	file.close()
 
     def read_domain_file(self):
@@ -133,13 +131,10 @@ class LetsEncryptPlugin (SectionPlugin):
         filepath = self.settings.basedir + filename
         file = open(filepath, 'w')
         src = Template( template )
-        if file.write(src.safe_substitute(dict)) is not None:
-            self.context.notify('info', 'Letsencrypt error')
+        file.write(src.safe_substitute(dict))
         file.close()
 
     def create_wellknown(self):
-#        if not self.check_nginx_custom_dir():
-#            return False
 
         template = """
 server {
@@ -158,15 +153,13 @@ server {
         filepath = self.nginx_config_dir + '/' + self.settings.nginx_config
         file = open(filepath, 'w')
         src = Template( template )
-        if file.write(src.safe_substitute(dict)) is not None:
-            self.context.notify('info', 'WELLKNOWN config write error')
+        file.write(src.safe_substitute(dict))
         file.close()
 
     def create_cron(self):
         file = open(self.crontab_dir + '/' + self.settings.cronfile, 'w')
         template = "0 0 1 * * " + self.pwd + 'libs/dehydrated/dehydrated -c'
-        if not file.write(template):
-            self.context.notify('info', 'Cron job error')
+        file.write(template)
         file.close()
 
     def remove_cron(self):
@@ -187,7 +180,7 @@ server {
             if os.makedirs(self.nginx_config_dir):
                 return True
             else:
-                self.context.notify('error', 'NGINX custom dir write error: '+self.nginx_config_dir)
+                self.context.notify('error', 'NGINX custom dir write error')
                 return False
 
     def request_certificates(self):
@@ -209,10 +202,8 @@ server {
         self.create_folders()
         self.write_domain_file()
 
-        if not self.has_domains:
-            return
-
         self.create_custom_config()
+
  
         self.create_wellknown()
 
